@@ -57,7 +57,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./src/docker/Dockerfile
+          file: Dockerfile
           push: true
           build-args: |
             IMAGE_TAG=${{ steps.vars.outputs.tag }}
