@@ -19,8 +19,20 @@ jobs:
       contents: read
       packages: write
     steps:
+      - name: Extract tag
+        id: extract_tag
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref_type }}" = "tag" ]; then
+            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=latest" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build & Push Docker
         uses: davidslusser/actions_docker_github@main
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           image-name: ${{ github.repository }}
+          tag: ${{ steps.extract_tag.outputs.tag }}
