@@ -8,11 +8,24 @@ from bottle import Bottle, run, template
 app = Bottle()
 
 # Record start time
-start_time: str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
+process_start_time = datetime.datetime.now(datetime.UTC)
+start_time: str = process_start_time.strftime("%Y-%m-%d %H:%M:%S UTC")
 
 # Get environment variables
 image_tag: str = os.getenv("IMAGE_TAG", "unknown")
 hostname: str = socket.gethostname()
+
+
+def get_uptime() -> str:
+    """Return the elapsed process time in a human-readable format."""
+    elapsed_seconds = int((datetime.datetime.now(datetime.UTC) - process_start_time).total_seconds())
+    days, remainder = divmod(elapsed_seconds, 86_400)
+    hours, remainder = divmod(remainder, 3_600)
+    minutes, seconds = divmod(remainder, 60)
+
+    if days:
+        return f"{days}d {hours:02}h {minutes:02}m {seconds:02}s"
+    return f"{hours:02}h {minutes:02}m {seconds:02}s"
 
 
 @app.route("/")
@@ -59,6 +72,7 @@ def index() -> str:
             <ul>
                 <li><strong>Hostname:</strong><br/> {{hostname}}</li>
                 <li><strong>Start Time:</strong><br/> {{start_time}}</li>
+                <li><strong>Uptime:</strong><br/> {{uptime}}</li>
                 <li><strong>Image Tag:</strong><br/> {{image_tag}}</li>
             </ul>
         </div>
@@ -67,6 +81,7 @@ def index() -> str:
         """,
         hostname=hostname,
         start_time=start_time,
+        uptime=get_uptime(),
         image_tag=image_tag,
     )
 
@@ -76,6 +91,7 @@ def api() -> dict[str, str]:
     return {
         "hostname": socket.gethostname(),
         "start_time": start_time,
+        "uptime": get_uptime(),
         "version": image_tag,
     }
 
